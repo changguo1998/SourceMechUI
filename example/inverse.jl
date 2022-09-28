@@ -74,7 +74,7 @@ for s in nenv["stations"]
 end
 
 @info "Save"
-jldsave(joinpath(@__DIR__, "result.jld2"); mech=mech, result=result)
+jldsave(joinpath(@__DIR__, "result.jld2"); mech = mech, result = result)
 
 @info "Plot"
 include("plot.jl")

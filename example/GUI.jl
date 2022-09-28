@@ -1,4 +1,14 @@
-using ArgumentProcessor, JuliaSourceMechanism, TOML, Dates, DelimitedFiles, Printf, JLD2, FFTW, Statistics, DSP, Sockets
+using ArgumentProcessor,
+    JuliaSourceMechanism,
+    TOML,
+    Dates,
+    DelimitedFiles,
+    Printf,
+    JLD2,
+    FFTW,
+    Statistics,
+    DSP,
+    Sockets
 
 # a user defined initial function
 include("lib.jl")
@@ -6,9 +16,21 @@ include("lib.jl")
 # set misfit model
 misfit_module = [XCorr, Polarity]
 
-addopt!("port"; abbr = "P", fmt = " %d", default=" 12345", help = "Port number opened to GUI program")
-addopt!("dataroot"; abbr = "R", fmt=" %s", default = " "*pwd(), help = "Root directory of event")
-addopt!("jldfile"; abbr="J", fmt=" %s", default=" ", help="Data file")
+addopt!(
+    "port";
+    abbr = "P",
+    fmt = " %d",
+    default = " 12345",
+    help = "Port number opened to GUI program",
+)
+addopt!(
+    "dataroot";
+    abbr = "R",
+    fmt = " %s",
+    default = " " * pwd(),
+    help = "Root directory of event",
+)
+addopt!("jldfile"; abbr = "J", fmt = " %s", default = " ", help = "Data file")
 INPUTS = ArgumentProcessor.parse(ARGS)
 
 if isdir(INPUTS.dataroot)
@@ -27,7 +49,7 @@ if isfile(normpath(INPUTS.dataroot, INPUTS.jldfile))
     end
 else
     env = loadandinit(misfit_module, dataroot)
-    status = Dict{String, Any}()
+    status = Dict{String,Any}()
 end
 status["saveplotdata"] = true
 status["saveplotdatato"] = abspath(".tmpplot.mat")

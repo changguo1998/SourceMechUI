@@ -1,7 +1,6 @@
-using SeismicRayTrace, SeisTools
+using SeismicRayTrace, SeisTools, TOML, Dates, JuliaSourceMechanism, UIServer
 SeismicRayTrace.set!(maxit = 10000)
 
-function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
     # * event infomation
     event = let
         evtinfo = TOML.parsefile(joinpath(dataroot, "eventinfo.toml"))
@@ -13,11 +12,13 @@ function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
             "origintime" => evtinfo["time"],
         )
     end
+
     algorithm = Dict(
         "misfit" => [m.tags[1] for m in misfitmodules],
         "searchdepth" => event["depth"],
         "weight" => ones(length(misfitmodules)),
     )
+
     stations = buildstationconfiguration(dataroot, event)
 
     # * station infomation
@@ -38,43 +39,43 @@ function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
         s["green_model"] = "changning"
         s["green_tsource"] = 0.1
         s["green_dt"] = 0.05
-        # select one method below and comment others
-        # if use DWN
-        (tp, ts, vroll) = let
-            m = readdlm(
-                normpath(dataroot, "model", s["green_model"] * ".model"),
-                ',';
-                comments = true,
-            )
-            l = findlast(<=(-sacf.hdr["stel"] / 1000.0), m[:, 1])
-            if isnothing(l)
-                l = 1
-            end
-            m0 = m[l:end, :]
-            m0[1, 1] = -sacf.hdr["stel"] / 1000.0
-            tps = raytrace(
-                0.0,
-                event["depth"],
-                s["base_distance"],
-                m0[:, 1],
-                m0[:, 2],
-                "all",
-            )
-            tss = raytrace(
-                0.0,
-                event["depth"],
-                s["base_distance"],
-                m0[:, 1],
-                m0[:, 3],
-                "all",
-            )
-            (minimum(map(v -> v.t, tps)), minimum(map(v -> v.t, tss)), m0[1, 3] / sqrt(2.0))
-        end
-        s["green_m"] = 50000
-        s["green_tl"] = max(tp + ts, s["base_distance"] / vroll)
-        # if use 3D numarical method like SEM, FD
-        s["green_modelpath"] = ""
-        s["green_ttlibpath"] = ""
+        # ! select one method below and comment others
+        # - if use DWN
+        # (tp, ts, vroll) = let
+        #     m = readdlm(
+        #         normpath(dataroot, "model", s["green_model"] * ".model"),
+        #         ',';
+        #         comments = true,
+        #     )
+        #     l = findlast(<=(-sacf.hdr["stel"] / 1000.0), m[:, 1])
+        #     if isnothing(l)
+        #         l = 1
+        #     end
+        #     m0 = m[l:end, :]
+        #     m0[1, 1] = -sacf.hdr["stel"] / 1000.0
+        #     tps = raytrace(
+        #         0.0,
+        #         event["depth"],
+        #         s["base_distance"],
+        #         m0[:, 1],
+        #         m0[:, 2],
+        #         "all",
+        #     )
+        #     tss = raytrace(
+        #         0.0,
+        #         event["depth"],
+        #         s["base_distance"],
+        #         m0[:, 1],
+        #         m0[:, 3],
+        #         "all",
+        #     )
+        #     (minimum(map(v -> v.t, tps)), minimum(map(v -> v.t, tss)), m0[1, 3] / sqrt(2.0))
+        # end
+        # s["green_m"] = 50000
+        # s["green_tl"] = max(tp + ts, s["base_distance"] / vroll)
+        # - if use 3D numarical method like SEM, FD
+        # s["green_modelpath"] = ""
+        # s["green_ttlibpath"] = ""
         # * phase infomation
         for p in s["phases"]
             p["tt"] = round(p["at"] - event["origintime"], Millisecond).value * 1e-3
@@ -149,7 +150,8 @@ function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
         "stations" => stations,
         "dataroot" => dataroot,
     )
-    JuliaSourceMechanism.InteractiveTest.fresh!(env, misfitmodules)
+
+    JuliaSourceMechanism.loaddata!(env)
     for s in env["stations"]
         (meta, _) = JuliaSourceMechanism.Green.scangreenfile(
             normpath(
@@ -167,5 +169,3 @@ function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
             end
         end
     end
-    return env
-end

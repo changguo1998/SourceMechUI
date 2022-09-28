@@ -29,7 +29,7 @@ struct Option
     key::String
     value::String
     abbr::String
-    function Option(key::String, val::String = "", abbr::String = "")
+    function Option(key::String, val::String="", abbr::String="")
         return new(key, val, abbr)
     end
 end
@@ -39,7 +39,7 @@ function addopt!(l::Vector{Option}, x::Option)
     return nothing
 end
 
-function addopt!(l::Vector{Option}, key::String, val::String = "", abbr::String = "")
+function addopt!(l::Vector{Option}, key::String, val::String="", abbr::String="")
     push!(l, Option(key, val, abbr))
     return nothing
 end
