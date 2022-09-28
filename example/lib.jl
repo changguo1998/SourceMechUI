@@ -1,23 +1,19 @@
 using SeismicRayTrace, SeisTools
-SeismicRayTrace.set!(maxit = 10000)
+SeismicRayTrace.set!(; maxit=10000)
 
 function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
     # * event infomation
     event = let
         evtinfo = TOML.parsefile(joinpath(dataroot, "eventinfo.toml"))
-        Dict(
-            "longitude" => evtinfo["longitude"],
-            "latitude" => evtinfo["latitude"],
-            "depth" => evtinfo["depth"],
-            "magnitude" => evtinfo["mag"],
-            "origintime" => evtinfo["time"],
-        )
+        Dict("longitude" => evtinfo["longitude"],
+             "latitude" => evtinfo["latitude"],
+             "depth" => evtinfo["depth"],
+             "magnitude" => evtinfo["mag"],
+             "origintime" => evtinfo["time"])
     end
-    algorithm = Dict(
-        "misfit" => [m.tags[1] for m in misfitmodules],
-        "searchdepth" => event["depth"],
-        "weight" => ones(length(misfitmodules)),
-    )
+    algorithm = Dict("misfit" => [m.tags[1] for m in misfitmodules],
+                     "searchdepth" => event["depth"],
+                     "weight" => ones(length(misfitmodules)))
     stations = buildstationconfiguration(dataroot, event)
 
     # * station infomation
@@ -25,11 +21,9 @@ function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
     for s in stations
         sacf = SeisTools.SAC.read(normpath(dataroot, "sac", s["meta_file"]))
         # - trim window
-        s["base_trim"] = [
-            event["origintime"] - Second(90),
-            SeisTools.SAC.DateTime(sacf.hdr) +
-            Millisecond(round(Int, sacf.hdr["delta"] * sacf.hdr["npts"] * 1e3)),
-        ]
+        s["base_trim"] = [event["origintime"] - Second(90),
+                          SeisTools.SAC.DateTime(sacf.hdr) +
+                          Millisecond(round(Int, sacf.hdr["delta"] * sacf.hdr["npts"] * 1e3))]
         push!(s["phases"], Dict("type" => "P", "at" => now()))
         push!(s["phases"], Dict("type" => "S", "at" => now()))
         # - Green function setting
@@ -41,33 +35,27 @@ function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
         # select one method below and comment others
         # if use DWN
         (tp, ts, vroll) = let
-            m = readdlm(
-                normpath(dataroot, "model", s["green_model"] * ".model"),
-                ',';
-                comments = true,
-            )
+            m = readdlm(normpath(dataroot, "model", s["green_model"] * ".model"),
+                        ',';
+                        comments=true)
             l = findlast(<=(-sacf.hdr["stel"] / 1000.0), m[:, 1])
             if isnothing(l)
                 l = 1
             end
             m0 = m[l:end, :]
             m0[1, 1] = -sacf.hdr["stel"] / 1000.0
-            tps = raytrace(
-                0.0,
-                event["depth"],
-                s["base_distance"],
-                m0[:, 1],
-                m0[:, 2],
-                "all",
-            )
-            tss = raytrace(
-                0.0,
-                event["depth"],
-                s["base_distance"],
-                m0[:, 1],
-                m0[:, 3],
-                "all",
-            )
+            tps = raytrace(0.0,
+                           event["depth"],
+                           s["base_distance"],
+                           m0[:, 1],
+                           m0[:, 2],
+                           "all")
+            tss = raytrace(0.0,
+                           event["depth"],
+                           s["base_distance"],
+                           m0[:, 1],
+                           m0[:, 3],
+                           "all")
             (minimum(map(v -> v.t, tps)), minimum(map(v -> v.t, tss)), m0[1, 3] / sqrt(2.0))
         end
         s["green_m"] = 50000
@@ -143,22 +131,18 @@ function loadandinit(misfitmodules::Vector{Module}, dataroot::String)
         end
     end
 
-    env = Dict(
-        "algorithm" => algorithm,
-        "event" => event,
-        "stations" => stations,
-        "dataroot" => dataroot,
-    )
+    env = Dict("algorithm" => algorithm,
+               "event" => event,
+               "stations" => stations,
+               "dataroot" => dataroot)
     JuliaSourceMechanism.InteractiveTest.fresh!(env, misfitmodules)
     for s in env["stations"]
-        (meta, _) = JuliaSourceMechanism.Green.scangreenfile(
-            normpath(
-                env["dataroot"],
-                "greenfun",
-                @sprintf("%s-%.4f", s["green_model"], env["algorithm"]["searchdepth"]),
-                s["network"] * "." * s["station"] * "." * s["component"] * ".gf",
-            ),
-        )
+        (meta, _) = JuliaSourceMechanism.Green.scangreenfile(normpath(env["dataroot"],
+                                                                      "greenfun",
+                                                                      @sprintf("%s-%.4f", s["green_model"],
+                                                                               env["algorithm"]["searchdepth"]),
+                                                                      s["network"] * "." * s["station"] * "." *
+                                                                      s["component"] * ".gf"))
         for p in s["phases"]
             if p["type"] == "P"
                 p["tt"] = meta["tp"]

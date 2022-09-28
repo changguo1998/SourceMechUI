@@ -1,14 +1,14 @@
 using ArgumentProcessor,
-    JuliaSourceMechanism,
-    TOML,
-    Dates,
-    DelimitedFiles,
-    Printf,
-    JLD2,
-    FFTW,
-    Statistics,
-    DSP,
-    Sockets
+      JuliaSourceMechanism,
+      TOML,
+      Dates,
+      DelimitedFiles,
+      Printf,
+      JLD2,
+      FFTW,
+      Statistics,
+      DSP,
+      Sockets
 
 # a user defined initial function
 include("lib.jl")
@@ -16,21 +16,17 @@ include("lib.jl")
 # set misfit model
 misfit_module = [XCorr, Polarity]
 
-addopt!(
-    "port";
-    abbr = "P",
-    fmt = " %d",
-    default = " 12345",
-    help = "Port number opened to GUI program",
-)
-addopt!(
-    "dataroot";
-    abbr = "R",
-    fmt = " %s",
-    default = " " * pwd(),
-    help = "Root directory of event",
-)
-addopt!("jldfile"; abbr = "J", fmt = " %s", default = " ", help = "Data file")
+addopt!("port";
+        abbr="P",
+        fmt=" %d",
+        default=" 12345",
+        help="Port number opened to GUI program")
+addopt!("dataroot";
+        abbr="R",
+        fmt=" %s",
+        default=" " * pwd(),
+        help="Root directory of event")
+addopt!("jldfile"; abbr="J", fmt=" %s", default=" ", help="Data file")
 INPUTS = ArgumentProcessor.parse(ARGS)
 
 if isdir(INPUTS.dataroot)
@@ -62,7 +58,7 @@ svr = listen(IPv4(0), INPUTS.port)
 sock = accept(svr)
 @info "Connection established"
 
-JuliaSourceMechanism.InteractiveTest.repl!(sock, env, status; misfits = misfit_module)
+JuliaSourceMechanism.InteractiveTest.repl!(sock, env, status; misfits=misfit_module)
 
 # uncomment codes below while using CLI
 # JuliaSourceMechanism.InteractiveTest.repl!(env, status; misfits = misfit_module)

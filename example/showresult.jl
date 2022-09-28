@@ -33,25 +33,19 @@ function similarity(x, y, s, dt)
     return c / ax / ay
 end
 
-infoline(c) = @sprintf(
-    "%c       %c    %5.1f  %5.2f  %5.1f  %5.2f",
-    symsign(c["P"]["polarity_rec"]),
-    symsign(c["P"]["polarity_syn"]),
-    100 * similarity(
-        c["P"]["xcorr_rec"],
-        c["P"]["xcorr_syn"],
-        c["P"]["xcorr_shift"],
-        c["P"]["xcorr_dt"],
-    ),
-    c["P"]["xcorr_shift"],
-    100 * similarity(
-        c["S"]["xcorr_rec"],
-        c["S"]["xcorr_syn"],
-        c["S"]["xcorr_shift"],
-        c["S"]["xcorr_dt"],
-    ),
-    c["S"]["xcorr_shift"]
-)
+infoline(c) = @sprintf("%c       %c    %5.1f  %5.2f  %5.1f  %5.2f",
+                       symsign(c["P"]["polarity_rec"]),
+                       symsign(c["P"]["polarity_syn"]),
+                       100 * similarity(c["P"]["xcorr_rec"],
+                                        c["P"]["xcorr_syn"],
+                                        c["P"]["xcorr_shift"],
+                                        c["P"]["xcorr_dt"]),
+                       c["P"]["xcorr_shift"],
+                       100 * similarity(c["S"]["xcorr_rec"],
+                                        c["S"]["xcorr_syn"],
+                                        c["S"]["xcorr_shift"],
+                                        c["S"]["xcorr_dt"]),
+                       c["S"]["xcorr_shift"])
 
 println("Result:")
 @printf("strike: %d  dip: %d  rake: %d\n", round.(Int, mech)...)

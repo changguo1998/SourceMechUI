@@ -1,8 +1,10 @@
 using JuliaSourceMechanism, JLD2, LinearAlgebra, Printf
 
+prefix = "data"
+
 @info "Load buffer"
 (env, status) = let
-    t = load(joinpath(@__DIR__, "..", "data.jld2"))
+    t = load(joinpath(@__DIR__, "..", prefix * ".jld2"))
     (t["env"], t["status"])
 end
 
@@ -43,7 +45,7 @@ for m in nenv["algorithm"]["misfit"], f in [XCorr, Polarity, PSR, DTW, AbsShift,
 end
 
 @info "Run"
-preprocess!(nenv, misfits; warn = false)
+preprocess!(nenv, misfits; warn=false)
 (sdr, phaselist, misfit, misfitdetail) = inverse!(nenv, misfits, Grid)
 weight = normalize(map(x -> x[1].weight(x[2], env, env), phaselist), 1)
 totalmisfit = replace(misfitdetail, NaN => 0.0) * weight
@@ -74,7 +76,8 @@ for s in nenv["stations"]
 end
 
 @info "Save"
-jldsave(joinpath(@__DIR__, "result.jld2"); mech = mech, result = result)
+jldsave(joinpath(@__DIR__, prefix * "_result.jld2"); mech=mech, result=result)
 
 @info "Plot"
+fname = prefix * "_result.jld2"
 include("plot.jl")
