@@ -1,0 +1,19 @@
+name = "SourceMechUI"
+uuid = "d2b8d0e9-6c7e-4fc8-89ed-19c8d380e66e"
+authors = ["changguo1998 <changguo1998@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+DSP = "717857b8-e6f2-59f4-9121-6e50c889abd2"
+DWN = "cd0201ce-641d-4930-81fb-47a2ab5929d7"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
+JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
+JuliaSourceMechanism = "fcf89f7a-9a65-42c5-bcc0-284547580d60"
+MAT = "23992714-dd62-5051-b70f-ba57cb901cac"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+SeisTools = "1a3a5297-0f7d-450c-8955-231a439346a8"
+SeismicRayTrace = "1a90cdcd-02e0-4887-85dc-4804a62d2cac"
+Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
+TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
