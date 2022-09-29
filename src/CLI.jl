@@ -9,6 +9,9 @@ include("utils.jl")
 for f in readdir(joinpath(@__DIR__, "options"))
     include(joinpath(@__DIR__, "options", f))
 end
+
+include(joinpath(@__DIR__, "interpreter.jl"))
+
 #=
 function fresh!(env::Setting, misfitmodules::Vector{Module}; warn::Bool=false)
     t = checkconfiguration(devnull, env, misfitmodules)

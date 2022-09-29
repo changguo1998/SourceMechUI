@@ -1,6 +1,6 @@
 module Server
 using Sockets
-import ..CLI._repl!
+using ..CLI._repl!
 
 SERVER_SETTING = Dict{String,Any}()
 

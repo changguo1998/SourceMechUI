@@ -12,4 +12,6 @@ function initevent(path::AbstractString)
     return nothing
 end
 
+initevent() = initevent(pwd())
+
 end
