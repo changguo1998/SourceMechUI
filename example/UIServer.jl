@@ -159,3 +159,8 @@ for s in env["stations"]
         end
     end
 end
+status = Dict{String,Any}()
+status["saveplotdata"] = true
+status["saveplotdatato"] = abspath(".tmpplot.mat")
+
+UIServer.Server.launchserver!(env, status)
