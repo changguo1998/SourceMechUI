@@ -106,12 +106,20 @@ end
 _split(s) = split(s; keepempty=false)
 
 function _repl!(ioin::IO, ioout::IO, env::Setting, status::Dict)
+    isterminal = ioin == stdin
+    updatestationselection!(env, status)
     while true
+        if isterminal
+            print("cmd> ")
+        end
         s = readline(ioin)
         cmd = s |> strip |> _split .|> String
         println(join(cmd, ' '))
         if interpret!(ioout, env, status, cmd)
-            continue
+            println("---")
+            if !isterminal
+                print(ioout, '\0')
+            end
         else
             break
         end

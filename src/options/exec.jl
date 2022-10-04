@@ -29,6 +29,8 @@ shell cmd
 function cmd_help(io::IO, env, status, cmd::Vector{String})
     if length(cmd) > 1
         _showhelp(cmd[2:end])
+    else
+        _showhelp(collect(keys(_OPTIONS)))
     end
 end
 
@@ -37,7 +39,7 @@ help cmd
     print help of module""", cmd_help)
 
 function cmd_tmpfile(io::IO, env, status, cmd::Vector{String})
-    println(io, abspath(status["saveplotdatato"]))
+    print(io, abspath(status["saveplotdatato"]))
     return nothing
 end
 

@@ -35,10 +35,12 @@ function parsesetconfig(env, status, cmd::Vector{String})
 end
 
 function setstatus!(env, status, cmd)
+    @debuginfo "enter setstatus!\ncurrent command: "*join(cmd, ' ')
     if length(cmd) < 4
         help_set()
     else
         if cmd[3] == "current_station"
+            @debuginfo "set current station"
             status[cmd[3]] = cmd[4]
         elseif cmd[3] == "refmech"
             if length(cmd) < 6
@@ -87,8 +89,10 @@ function setstatus!(env, status, cmd)
             @warn "key $key illegal."
         end
     end
+    @debuginfo "process set finish, print status"
     status["fresh"] = false
-    printstatus(env, status, cmd)
+    printstatus(env, status)
+    @debuginfo "exit setstatus!"
     return nothing
 end
 
@@ -260,6 +264,7 @@ function cmd_set(io::IO, env, status, cmd::Vector{String})
         JuliaSourceMechanism.loaddata!(env)
     end
     status["fresh"] = false
+    updatestationselection!(env, status)
     return nothing
 end
 

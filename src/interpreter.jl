@@ -95,6 +95,9 @@ end
 
 function interpret!(io::IO, env, status, cmd::Vector{String})
     global _OPTIONS
+    if isempty(cmd)
+        return true
+    end
     if cmd[1] in ("quit", "exit", "q")
         return false
     end
@@ -110,13 +113,14 @@ function interpret!(io::IO, env, status, cmd::Vector{String})
     try
         # call modules
         if cmd[1] in keys(_OPTIONS)
-            func = _OPTIONS[cmd[1]]
+            func = _OPTIONS[cmd[1]].f
             func(io, env, status, cmd)
         else
             @warn "command $(cmd[1]) not exist"
         end
     catch err
-        println(err)
+        @error "error while processing: " * join(cmd, ' ') 
+        # println(err)
     finally
         return true
     end

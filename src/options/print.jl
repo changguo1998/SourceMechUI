@@ -131,20 +131,20 @@ end
 
 function cmd_print(io::IO, env, status, cmd::Vector{String})
     if length(cmd) < 2
-        help_print()
-        return returnnone
+        _showhelp("print")
+        return nothing
     end
     t = lowercase(cmd[2])
     if t == "status"
-        return printstatus
+        printstatus(env, status)
     elseif t == "station"
-        return printstationinfo
+        printstationinfo(env, status, cmd)
     elseif t == "event"
-        return printevent
+        printevent(env, status, cmd)
     elseif t == "algorithm"
-        return printalgorithm
+        printalgorithm(env, status, cmd)
     end
-    return returnnone
+    return nothing
 end
 
 _registeroption!("print", [""], """

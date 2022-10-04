@@ -32,3 +32,14 @@ _showhelp(o::String) = _showhelp(String[o])
 returnnone(x...) = nothing
 
 gettag(x::Dict) = x["network"] * "." * x["station"]
+
+const _DEBUG_ = true
+
+macro debuginfo(ex)
+    return quote
+        if _DEBUG_
+            printstyled("Debug info: ", color=:light_blue)
+            println($(esc(ex)))
+        end
+    end
+end
