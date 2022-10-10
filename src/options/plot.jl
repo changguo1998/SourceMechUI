@@ -65,8 +65,9 @@ function plotstation(env, status)
     wg = Vector{Float64}[]
     sw = Float64[]
     sg = Float64[]
+    etshift = Millisecond(round(stas[1]["base_begintime"]-env["event"]["origintime"], Millisecond)).value*1e-3
     for i = 1:3
-        rbt = round(stas[i]["base_begintime"] - bt, Millisecond).value * 1e-3
+        rbt = round(stas[i]["base_begintime"] - bt, Millisecond).value * 1e-3 .+ etshift
         w = deepcopy(stas[i]["base_record"])
         if flag_filter
             fltr = digitalfilter(Bandpass(status["filterband"][1], status["filterband"][2];
@@ -98,7 +99,7 @@ function plotstation(env, status)
             end
             g ./= maximum(abs, g) * 2 / amp
             g .+= shift - 0.2
-            push!(tg, (0:length(g)-1) .* stas[i]["green_dt"])
+            push!(tg, (0:length(g)-1) .* stas[i]["green_dt"] .+ etshift)
             push!(wg, g)
             push!(sw, shift)
             push!(sg, shift - 0.2)

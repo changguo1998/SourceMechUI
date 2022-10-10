@@ -121,6 +121,9 @@ function _repl!(ioin::IO, ioout::IO, env::Setting, status::Dict)
                 print(ioout, '\0')
             end
         else
+            if !isterminal
+                print(ioout, '\0')
+            end
             break
         end
     end

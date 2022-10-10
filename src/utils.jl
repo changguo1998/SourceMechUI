@@ -33,7 +33,7 @@ returnnone(x...) = nothing
 
 gettag(x::Dict) = x["network"] * "." * x["station"]
 
-const _DEBUG_ = true
+const _DEBUG_ = false
 
 macro debuginfo(ex)
     return quote
