@@ -45,7 +45,7 @@ for m in nenv["algorithm"]["misfit"], f in [XCorr, Polarity, PSR, DTW, AbsShift,
 end
 
 @info "Run"
-preprocess!(nenv, misfits; warn=false)
+preprocess!(nenv, misfits)
 (sdr, phaselist, misfit, misfitdetail) = inverse!(nenv, misfits, Grid)
 weight = normalize(map(x -> x[1].weight(x[2], env, env), phaselist), 1)
 totalmisfit = replace(misfitdetail, NaN => 0.0) * weight

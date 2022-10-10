@@ -186,7 +186,7 @@ if strcmp(type, 'wave')
     for i = 1:length(win)
         t = win{i};
         phasetype = [phasetype, t.type];
-        phaseat = [phaseat, t.at];
+        phaseat = [phaseat, t.at + btg];
         phasett = [phasett, t.tt + btg];
         for j = 1:3
             fn = fieldnames(t);
@@ -195,10 +195,10 @@ if strcmp(type, 'wave')
                     trims = [trims, fn{k}];
                     ttag = strrep(fn{k}, '_trim', '');
                     w = t.(fn{k});
-                    [wx, wy] = rect(t.at+w(1), t.at+w(2), 0.5, 3.5+st*k);
-                    text(t.at+w(1), 3.5+st*k, ['<-', ttag], 'FontName', 'Georgia', 'FontSize', 10, 'Rotation', 90, ...
+                    [wx, wy] = rect(t.at+w(1)+btg, t.at+w(2)+btg, 0.5, 3.5+st*k);
+                    text(t.at+btg+w(1), 3.5+st*k, ['<-', ttag], 'FontName', 'Georgia', 'FontSize', 10, 'Rotation', 90, ...
                         'Interpreter', 'none');
-                    text(t.at+w(2), 3.5+st*k, ['<-', ttag], 'FontName', 'Georgia', 'FontSize', 10, 'Rotation', 90, ...
+                    text(t.at+btg+w(2), 3.5+st*k, ['<-', ttag], 'FontName', 'Georgia', 'FontSize', 10, 'Rotation', 90, ...
                         'Interpreter', 'none');
                     fill(wx, wy, 'k', 'EdgeColor', 'w', 'FaceAlpha', 0.02, 'EdgeAlpha', 0.02);
                     [wx, wy] = rect(t.tt+w(1)+btg, t.tt+w(2)+btg, 0.5-st*k, 3.5);
@@ -214,7 +214,7 @@ if strcmp(type, 'wave')
     for i = 1:length(win)
         t = win{i};
         for j = 1:3
-            line([1, 1]*t.at, [-1, 1]*0.2+sw(j), 'Color', 'r');
+            line([1, 1]*t.at+btg, [-1, 1]*0.2+sw(j), 'Color', 'r');
             line([1, 1]*t.tt+btg, [-1, 1]*0.2+sg(j), 'Color', 'r');
         end
     end
@@ -239,7 +239,7 @@ if strcmp(type, 'wave')
     for i = 1:length(win)
         t = win{i};
         for j = 1:3
-            line([1, 1]*t.at, [-1, 1]*0.3+sw(j), 'Color', 'r');
+            line([1, 1]*t.at+btg, [-1, 1]*0.3+sw(j), 'Color', 'r');
             line([1, 1]*t.tt+btg, [-1, 1]*0.3+sg(j), 'Color', 'r');
         end
     end
@@ -476,7 +476,7 @@ function buttonPickphase_Callback(hObject, eventdata, handles)
 axes(handles.axis);
 [x, ~] = ginput(1);
 % fprintf('pick arrival time at: %fs\n', x);
-t = handles.userdata.btime + seconds(x);
+t = handles.userdata.btime + seconds(x - handles.userdata.gbtime);
 currentStation = handles.stationlistbox.String{handles.stationlistbox.Value};
 currentPhase = handles.pickphasetype.String{handles.pickphasetype.Value};
 runCommand(['csta ', currentStation], hObject, eventdata, handles);

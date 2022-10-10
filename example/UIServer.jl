@@ -145,6 +145,7 @@ env = Dict("algorithm" => algorithm,
 
 JuliaSourceMechanism.loaddata!(env)
 for s in env["stations"]
+    ot = Millisecond(env["event"]["origintime"] - s["base_begintime"]).value * 1e-3
     (meta, _) = JuliaSourceMechanism.Green.scangreenfile(normpath(env["dataroot"],
                                                                   "greenfun",
                                                                   @sprintf("%s-%.4f", s["green_model"],
@@ -153,9 +154,9 @@ for s in env["stations"]
                                                                   s["component"] * ".gf"))
     for p in s["phases"]
         if p["type"] == "P"
-            p["tt"] = meta["tp"]
+            p["tt"] = meta["tp"] + ot
         elseif p["type"] == "S"
-            p["tt"] = meta["ts"]
+            p["tt"] = meta["ts"] + ot
         end
     end
 end
