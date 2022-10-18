@@ -1,6 +1,10 @@
-using SeismicRayTrace, SeisTools, TOML, Dates, JuliaSourceMechanism, UIServer
+using DelimitedFiles, SeismicRayTrace, SeisTools, TOML, Dates, JuliaSourceMechanism, 
+    SourceMechUI, Printf
 SeismicRayTrace.set!(; maxit=10000)
 
+misfitmodules = [XCorr, Polarity]
+
+dataroot = abspath(@__DIR__, "..")
 # * event infomation
 event = let
     evtinfo = TOML.parsefile(joinpath(dataroot, "eventinfo.toml"))
@@ -164,4 +168,4 @@ status = Dict{String,Any}()
 status["saveplotdata"] = true
 status["saveplotdatato"] = abspath(".tmpplot.mat")
 
-UIServer.Server.launchserver!(env, status)
+SourceMechUI.Server.launchserver!(env, status)
