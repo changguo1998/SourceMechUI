@@ -1,6 +1,6 @@
 using JuliaSourceMechanism, JLD2, LinearAlgebra, Printf
 
-prefix = "data"
+prefix = ARGS[1]
 
 @info "Load buffer"
 (env, status) = let
@@ -45,6 +45,7 @@ for m in nenv["algorithm"]["misfit"], f in [XCorr, Polarity, PSR, DTW, AbsShift,
 end
 
 @info "Run"
+JuliaSourceMechanism.calcgreen!(nenv)
 preprocess!(nenv, misfits)
 (sdr, phaselist, misfit, misfitdetail) = inverse!(nenv, misfits, Grid)
 weight = normalize(map(x -> x[1].weight(x[2], env, env), phaselist), 1)

@@ -1,10 +1,14 @@
 using JuliaSourceMechanism, JLD2, LinearAlgebra, Printf, CairoMakie, SeisTools
 
 if !@isdefined result
-    fname = ARGS[1]
+    # fname = ARGS[1]
     (mech, result) = let
         t = JLD2.load(joinpath(@__DIR__, fname))
         (t["mech"], t["result"])
+    end
+    (env, status) = let
+        t = load(joinpath(@__DIR__, "..", replace(fname, "_result.jld2"=>".jld2")))
+        (t["env"], t["status"])
     end
 end
 
@@ -68,34 +72,48 @@ ax1 = Axis(fig[1, 1];
 ax2 = Axis(fig[1, 2])
 ax3 = Axis(fig[2, 1:2]; hideaxis...)
 
-for n = 1:nstation, j = 1:6
+lons = Float64[]
+lats = Float64[]
+tags = String[]
+
+for n = 1:nstation
     i = distperm[n]
     s = stationnames[i]
-    p = (j > 3) ? "S" : "P"
-    if mod(j - 1, 3) == 0
-        c = "E"
-    elseif mod(j - 1, 3) == 1
-        c = "N"
-    else
-        c = "Z"
+    ista = findfirst(t->t["network"]*"."*t["station"] == s, env["stations"])
+    push!(lons, env["stations"][ista]["meta_lon"])
+    push!(lats, env["stations"][ista]["meta_lat"])
+    push!(tags, s)
+    for j = 1:6
+        p = (j > 3) ? "S" : "P"
+        if mod(j - 1, 3) == 0
+            c = "E"
+        elseif mod(j - 1, 3) == 1
+            c = "N"
+        else
+            c = "Z"
+        end
+        dt = result[s][c][p]["xcorr_dt"]
+        sh = result[s][c][p]["xcorr_shift"]
+        nsp = round(Int, sh / dt)
+        if sh > 0
+            wr = result[s][c][p]["xcorr_rec"][nsp:end]
+            ws = result[s][c][p]["xcorr_syn"][1:end-nsp+1]
+        else
+            wr = result[s][c][p]["xcorr_rec"][1:end+nsp]
+            ws = result[s][c][p]["xcorr_syn"][1-nsp:end]
+        end
+        (tx, tr) = linearscale(wr; xlim=frame[n, j][1], ylim=frame[n, j][2])
+        lines!(ax3, tx, tr; color=:black)
+        (tx, tr) = linearscale(ws; xlim=frame[n, j][1], ylim=frame[n, j][2])
+        lines!(ax3, tx, tr; color=:red)
+        hl = (frame[n, j][2][1] + frame[n, j][2][2]) / 2
+        text!(ax3, 0.12, hl; text=stationnames[i], align=(:right, :baseline))
     end
-    dt = result[s][c][p]["xcorr_dt"]
-    sh = result[s][c][p]["xcorr_shift"]
-    nsp = round(Int, sh / dt)
-    if sh > 0
-        wr = result[s][c][p]["xcorr_rec"][nsp:end]
-        ws = result[s][c][p]["xcorr_syn"][1:end-nsp+1]
-    else
-        wr = result[s][c][p]["xcorr_rec"][1:end+nsp]
-        ws = result[s][c][p]["xcorr_syn"][1-nsp:end]
-    end
-    (tx, tr) = linearscale(wr; xlim=frame[n, j][1], ylim=frame[n, j][2])
-    lines!(ax3, tx, tr; color=:black)
-    (tx, tr) = linearscale(ws; xlim=frame[n, j][1], ylim=frame[n, j][2])
-    lines!(ax3, tx, tr; color=:red)
-    hl = (frame[n, j][2][1] + frame[n, j][2][2]) / 2
-    text!(ax3, 0.12, hl; text=stationnames[i], align=(:right, :baseline))
 end
+
+scatter!(ax2, lons, lats, marker=:utriangle, color=:blue, markersize=25)
+scatter!(ax2, [env["event"]["longitude"]], [env["event"]["latitude"]], marker=:star5, color=:red, markersize=36)
+text!(ax2, lons, lats; text=tags, align=(:center, :top))
 
 heatmap!(ax1,
          range(; start=-1.0, stop=1.0, length=1001),

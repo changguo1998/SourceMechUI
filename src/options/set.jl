@@ -262,6 +262,22 @@ function cmd_set(io::IO, env, status, cmd::Vector{String})
     end
     if status["fresh"]
         JuliaSourceMechanism.loaddata!(env)
+        for s in env["stations"]
+            ot = Millisecond(env["event"]["origintime"] - s["base_begintime"]).value * 1e-3
+            (meta, _) = JuliaSourceMechanism.Green.scangreenfile(normpath(env["dataroot"],
+                                                                          "greenfun",
+                                                                          @sprintf("%s-%.4f", s["green_model"],
+                                                                                   env["algorithm"]["searchdepth"]),
+                                                                          s["network"] * "." * s["station"] * "." *
+                                                                          s["component"] * ".gf"))
+            for p in s["phases"]
+                if p["type"] == "P"
+                    p["tt"] = meta["tp"] + ot
+                elseif p["type"] == "S"
+                    p["tt"] = meta["ts"] + ot
+                end
+            end
+        end
     end
     status["fresh"] = false
     updatestationselection!(env, status)

@@ -99,7 +99,7 @@ function plotstation(env, status)
             end
             g ./= maximum(abs, g) * 2 / amp
             g .+= shift - 0.2
-            push!(tg, (0:length(g)-1) .* stas[i]["green_dt"] .+ etshift)
+            push!(tg, (0:length(g)-1) .* stas[i]["green_dt"] .+ rbt)
             push!(wg, g)
             push!(sw, shift)
             push!(sg, shift - 0.2)

@@ -1,23 +1,26 @@
 using DelimitedFiles, SeismicRayTrace, SeisTools, TOML, Dates, JuliaSourceMechanism, 
-    SourceMechUI, Printf
+    SourceMechUI, Printf, JLD2
 SeismicRayTrace.set!(; maxit=10000)
 
 misfitmodules = [XCorr, Polarity]
 
 dataroot = abspath(@__DIR__, "..")
+
+if isempty(ARGS)
+
 # * event infomation
 event = let
     evtinfo = TOML.parsefile(joinpath(dataroot, "eventinfo.toml"))
     Dict("longitude" => evtinfo["longitude"],
-         "latitude" => evtinfo["latitude"],
-         "depth" => evtinfo["depth"],
-         "magnitude" => evtinfo["mag"],
-         "origintime" => evtinfo["time"])
+        "latitude" => evtinfo["latitude"],
+        "depth" => evtinfo["depth"],
+        "magnitude" => evtinfo["mag"],
+        "origintime" => evtinfo["time"])
 end
 
 algorithm = Dict("misfit" => [m.tags[1] for m in misfitmodules],
-                 "searchdepth" => event["depth"],
-                 "weight" => ones(length(misfitmodules)))
+                "searchdepth" => event["depth"],
+                "weight" => ones(length(misfitmodules)))
 
 stations = buildstationconfiguration(dataroot, event)
 
@@ -27,21 +30,21 @@ for s in stations
     sacf = SeisTools.SAC.read(normpath(dataroot, "sac", s["meta_file"]))
     # - trim window
     s["base_trim"] = [event["origintime"] - Second(90),
-                      SeisTools.SAC.DateTime(sacf.hdr) +
-                      Millisecond(round(Int, sacf.hdr["delta"] * sacf.hdr["npts"] * 1e3))]
+                    SeisTools.SAC.DateTime(sacf.hdr) +
+                    Millisecond(round(Int, sacf.hdr["delta"] * sacf.hdr["npts"] * 1e3))]
     push!(s["phases"], Dict("type" => "P", "at" => now()))
     push!(s["phases"], Dict("type" => "S", "at" => now()))
     # - Green function setting
     # general options
-    s["green_modeltype"] = "3D"
-    s["green_model"] = "changning"
+    s["green_modeltype"] = ""
+    s["green_model"] = ""
     s["green_tsource"] = 0.1
     s["green_dt"] = 0.05
     # ! select one method below and comment others
     # - if use DWN
-    # (tp, ts, vroll) = let
+    # (tp, ts) = let
     #     m = readdlm(
-    #         normpath(dataroot, "model", s["green_model"] * ".model"),
+    #         abspath(dataroot, "model", s["green_model"] * ".model"),
     #         ',';
     #         comments = true,
     #     )
@@ -51,26 +54,12 @@ for s in stations
     #     end
     #     m0 = m[l:end, :]
     #     m0[1, 1] = -sacf.hdr["stel"] / 1000.0
-    #     tps = raytrace(
-    #         0.0,
-    #         event["depth"],
-    #         s["base_distance"],
-    #         m0[:, 1],
-    #         m0[:, 2],
-    #         "all",
-    #     )
-    #     tss = raytrace(
-    #         0.0,
-    #         event["depth"],
-    #         s["base_distance"],
-    #         m0[:, 1],
-    #         m0[:, 3],
-    #         "all",
-    #     )
-    #     (minimum(map(v -> v.t, tps)), minimum(map(v -> v.t, tss)), m0[1, 3] / sqrt(2.0))
+    #     tp = raytrace_fastest(0.0, event["depth"], s["base_distance"], m0[:, 1], m0[:, 2])
+    #     ts = raytrace_fastest(0.0, event["depth"], s["base_distance"], m0[:, 1], m0[:, 3])
+    #     (tp.phase.t, ts.phase.t)
     # end
     # s["green_m"] = 50000
-    # s["green_tl"] = max(tp + ts, s["base_distance"] / vroll)
+    # s["green_tl"] = tp + ts / 0.5
     # - if use 3D numarical method like SEM, FD
     # s["green_modelpath"] = ""
     # s["green_ttlibpath"] = ""
@@ -143,19 +132,19 @@ for s in stations
 end
 
 env = Dict("algorithm" => algorithm,
-           "event" => event,
-           "stations" => stations,
-           "dataroot" => dataroot)
-
+        "event" => event,
+        "stations" => stations,
+        "dataroot" => dataroot)
+JuliaSourceMechanism.calcgreen!(env)
 JuliaSourceMechanism.loaddata!(env)
 for s in env["stations"]
     ot = Millisecond(env["event"]["origintime"] - s["base_begintime"]).value * 1e-3
     (meta, _) = JuliaSourceMechanism.Green.scangreenfile(normpath(env["dataroot"],
-                                                                  "greenfun",
-                                                                  @sprintf("%s-%.4f", s["green_model"],
-                                                                           env["algorithm"]["searchdepth"]),
-                                                                  s["network"] * "." * s["station"] * "." *
-                                                                  s["component"] * ".gf"))
+                                                                "greenfun",
+                                                                @sprintf("%s-%.4f", s["green_model"],
+                                                                        env["algorithm"]["searchdepth"]),
+                                                                s["network"] * "." * s["station"] * "." *
+                                                                s["component"] * ".gf"))
     for p in s["phases"]
         if p["type"] == "P"
             p["tt"] = meta["tp"] + ot
@@ -167,5 +156,22 @@ end
 status = Dict{String,Any}()
 status["saveplotdata"] = true
 status["saveplotdatato"] = abspath(".tmpplot.mat")
+
+else # !isempty(ARGS)
+
+(env, status) = let
+    p1 = abspath(ARGS[1])
+    p2 = abspath(pwd(), ARGS[1])
+    if isfile(p1)
+        t = load(p1)
+    elseif isfile(p2)
+        t = load(p2)
+    else
+        error("file not exist: "*ARGS[1])
+    end
+    (t["env"], t["status"])
+end
+
+end # isempty(ARGS)
 
 SourceMechUI.Server.launchserver!(env, status)
