@@ -1,7 +1,7 @@
 using JuliaSourceMechanism, JLD2, LinearAlgebra, Printf, CairoMakie, SeisTools
 
 if !@isdefined result
-    # fname = ARGS[1]
+    fname = ARGS[1]
     (mech, result) = let
         t = JLD2.load(joinpath(@__DIR__, fname))
         (t["mech"], t["result"])
