@@ -1,4 +1,4 @@
-using JuliaSourceMechanism, JLD2, LinearAlgebra, Printf
+using JuliaSourceMechanism, JLD2, LinearAlgebra, Printf, Dates
 
 prefix = ARGS[1]
 
@@ -46,6 +46,24 @@ end
 
 @info "Run"
 JuliaSourceMechanism.calcgreen!(nenv)
+
+for s in nenv["stations"]
+    ot = Millisecond(nenv["event"]["origintime"] - s["base_begintime"]).value * 1e-3
+    (meta, _) = JuliaSourceMechanism.Green.scangreenfile(normpath(nenv["dataroot"],
+                                                                "greenfun",
+                                                                @sprintf("%s-%.4f", s["green_model"],
+                                                                        nenv["algorithm"]["searchdepth"]),
+                                                                s["network"] * "." * s["station"] * "." *
+                                                                s["component"] * ".gf"))
+    for p in s["phases"]
+        if p["type"] == "P"
+            p["tt"] = meta["tp"] + ot
+        elseif p["type"] == "S"
+            p["tt"] = meta["ts"] + ot
+        end
+    end
+end
+
 preprocess!(nenv, misfits)
 (sdr, phaselist, misfit, misfitdetail) = inverse!(nenv, misfits, Grid)
 weight = normalize(map(x -> x[1].weight(x[2], env, env), phaselist), 1)
