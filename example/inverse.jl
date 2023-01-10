@@ -15,15 +15,14 @@ nenv["algorithm"] = env["algorithm"]
 nenv["event"] = env["event"]
 nenv["stations"] = Setting[]
 for s in env["stations"]
-    if s["network"] * "." * s["station"] ∈ status["stationlist_selected"]
+    # if s["network"] * "." * s["station"] ∈ status["stationlist_selected"]
         t = deepcopy(s)
         push!(nenv["stations"], t)
-    end
+    # end
 end
-
 # @info "Change parameter"
 # nenv["algorithm"]["misfit"] = ["xcorr", "pol"]
-# nenv["algorithm"]["weight"] = [1.0, 0.4]
+nenv["algorithm"]["weight"] = [1.0, 0.4]
 # for s in nenv["stations"]
 #     s["green_tsource"] = 0.04
 #     s["green_t0"] = -2.0 * s["green_tsource"]
@@ -36,6 +35,16 @@ end
 #         p["xcorr_dt"] = dt
 #     end
 # end
+
+for s in nenv["stations"]
+    for p in s["phases"]
+        if p["type"] == "P"
+            p["xcorr_trim"] = [-2.0, 3.0] ./ p["xcorr_band"][2]
+        else
+            p["xcorr_trim"] = [-4.0, 6.0] ./ p["xcorr_band"][2]
+        end
+    end
+end
 
 misfits = Module[]
 for m in nenv["algorithm"]["misfit"], f in [XCorr, Polarity, PSR, DTW, AbsShift, RelShift]
@@ -67,7 +76,11 @@ end
 preprocess!(nenv, misfits)
 (sdr, phaselist, misfit, misfitdetail) = inverse!(nenv, misfits, Grid)
 weight = normalize(map(x -> x[1].weight(x[2], env, env), phaselist), 1)
+weight_xcorr = normalize(map(x->x[1] == XCorr ? 1.0 : 0.0, phaselist), 1)
+weight_pol = normalize(map(x->x[1] == Polarity ? 1.0 : 0.0, phaselist), 1)
 totalmisfit = replace(misfitdetail, NaN => 0.0) * weight
+mis_xcorr = replace(misfitdetail, NaN => 0.0) * weight_xcorr
+mis_pol = replace(misfitdetail, NaN => 0.0) * weight_pol
 (minval, minidx) = findmin(totalmisfit)
 mech = sdr[minidx]
 
@@ -94,8 +107,13 @@ for s in nenv["stations"]
     end
 end
 
+result["info_mech"] = mech
+result["info_misfit"] = minval
+result["info_misfit_xcorr"] = mis_xcorr[minidx]
+result["info_misfit_pol"] = mis_pol[minidx]
+
 @info "Save"
-jldsave(joinpath(@__DIR__, prefix * "_result.jld2"); mech=mech, result=result)
+jldsave(joinpath(@__DIR__, prefix * "_result.jld2"); result=result)
 
 @info "Plot"
 fname = prefix * "_result.jld2"
