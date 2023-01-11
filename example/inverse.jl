@@ -43,6 +43,7 @@ for s in nenv["stations"]
         else
             p["xcorr_trim"] = [-4.0, 6.0] ./ p["xcorr_band"][2]
         end
+        p["xcorr_dt"] = max(s["green_dt"], s["meta_dt"], (p["xcorr_trim"][2] - p["xcorr_trim"][1])/100)
     end
 end
 

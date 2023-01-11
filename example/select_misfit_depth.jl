@@ -2,7 +2,8 @@ using JLD2, Printf
 
 function loadmisfit(path::AbstractString)
     t = JLD2.load(path)
-    return (t["result"]["mech"], t["result"]["misfit"], t["result"]["mis_xcorr"], t["result"]["mis_pol"])
+    return (t["result"]["info_mech"], t["result"]["info_misfit"], 
+        t["result"]["info_misfit_xcorr"], t["result"]["info_misfit_pol"])
 end
 
 fs = filter(v->startswith(v, "data") && endswith(v, "km_result.jld2"), readdir())
@@ -21,7 +22,7 @@ end
 
 mind = minimum(dep)-0.5
 maxd = maximum(dep)+0.5
-dm = 10^floor(Int, log10(maximum(mis) - minimum(mis)))
+dm = 10.0^floor(Int, log10(maximum(mis) - minimum(mis)))
 minm = floor(minimum(mis)/dm)*dm
 maxm = ceil(maximum(mis)/dm)*dm
 
