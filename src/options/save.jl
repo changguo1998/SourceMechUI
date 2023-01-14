@@ -1,6 +1,6 @@
 
 function outputconfig(env, status, cmd)
-    t = Dict("algorithm" => env["algorithm"], "event" => env["event"], "stations" => env["stations"])
+    # t = Dict("algorithm" => env["algorithm"], "event" => env["event"], "stations" => env["stations"])
     if length(cmd) <= 1
         tpath = normpath(env["dataroot"], "conf.jld2")
     else
