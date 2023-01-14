@@ -158,7 +158,8 @@ function plotspec(env, status)
         fft!(w)
         f = (1:length(w)) / length(w) / s["meta_dt"]
         idx = 1:round(Int, length(f) / 2)
-        tspec = abs.(w[idx])
+        tspec = log10.(abs.(w[idx]))
+        tspec .-= minimum(tspec)
         tspec ./= maximum(tspec)
         tspec .+= shift
         push!(fs, f[idx])
