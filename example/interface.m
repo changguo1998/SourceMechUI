@@ -22,7 +22,7 @@ function varargout = interface(varargin)
 
 % Edit the above text to modify the response to help interface
 
-% Last Modified by GUIDE v2.5 14-Sep-2022 22:02:55
+% Last Modified by GUIDE v2.5 14-Jan-2023 21:57:44
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -434,6 +434,7 @@ if ~strcmp(handles.ServerIP.String, '127.0.0.1') && ~strcmp(handles.ServerIP.Str
     gettmpfile(hObject, eventdata, handles);
     handles.userdata.figpath = '.tmpplot.mat';
 else
+    fprintf('IP: %s\n', handles.ServerIP.String);
     handles.userdata.figpath = runCommand('tmpfile', hObject, eventdata, handles);
 end
 load(handles.userdata.figpath, 'tag1', 'tag2');
@@ -1053,4 +1054,53 @@ function serverPort_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+end
+
+
+% --- Executes on button press in pushbutton_pol_Ep.
+function pushbutton_pol_Ep_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_pol_Ep (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+runCommand('set phase P polarity_obs 1 -c E', hObject, eventdata, handles);
+end
+
+% --- Executes on button press in pushbutton_pol_En.
+function pushbutton_pol_En_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_pol_En (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+runCommand('set phase P polarity_obs -1 -c E', hObject, eventdata, handles);
+end
+
+% --- Executes on button press in pushbutton_pol_Np.
+function pushbutton_pol_Np_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_pol_Np (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+runCommand('set phase P polarity_obs 1 -c N', hObject, eventdata, handles);
+end
+
+% --- Executes on button press in pushbutton_pol_Nn.
+function pushbutton_pol_Nn_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_pol_Nn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+runCommand('set phase P polarity_obs -1 -c N', hObject, eventdata, handles);
+end
+
+% --- Executes on button press in pushbutton_pol_Zp.
+function pushbutton_pol_Zp_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_pol_Zp (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+runCommand('set phase P polarity_obs 1 -c Z', hObject, eventdata, handles);
+end
+
+% --- Executes on button press in pushbutton_pol_Zn.
+function pushbutton_pol_Zn_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_pol_Zn (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+runCommand('set phase P polarity_obs -1 -c Z', hObject, eventdata, handles);
 end
