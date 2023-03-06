@@ -60,3 +60,7 @@ function cmd_gettmp(io::IO, env, status, cmd::Vector{String})
     end
     return nothing
 end
+
+_registeroption!("gettmp", [""], """
+gettmp
+    return buffer file""", cmd_gettmp)
